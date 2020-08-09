@@ -25,52 +25,42 @@ inline ll pos_mod(ll i, ll n) {
 #define FORK(n) for (int k = 0; k < (n); k++)
 #define MOD 1000000007
 
+ll sum(vll& ft, int p) {
+  ll s = 0;
+  for (int i = p; i > 0; i -= i & (-i))
+    s += ft[i];
+  return s;
+}
+
+void add(vll& ft, int p, int dv) {
+  for (int i = p; i < ft.size(); i += i & (-i))
+    ft[i] += dv;
+}
+
 int main() {
   ios_base::sync_with_stdio(false);
   cin.tie(NULL);
-  int BLOCK = 500;
   int n, q;
   cin >> n >> q;
-  vi X(n);
-  vi B(n / BLOCK + 1, MOD);
+  vll FT(n + 1);
   FORI(n) {
-    cin >> X[i];
-    B[i / BLOCK] = min(B[i / BLOCK], X[i]);
+    int x;
+    cin >> x;
+    add(FT, i + 1, x);
+    add(FT, i + 2, -x);
   }
-
   while (q--) {
     int t;
     cin >> t;
-    if (t == 2) {
-      int a, b;
-      cin >> a >> b;
-      a--;
-      b--;
-      int res = X[a];
-      while (a % BLOCK != 0 && a <= b) {
-        res = min(res, X[a]);
-        a++;
-      }
-      while (b % BLOCK != (BLOCK - 1) && a <= b) {
-        res = min(res, X[b]);
-        b--;
-      }
-      while (a < b) {
-        res = min(res, B[a / BLOCK]);
-        a += BLOCK;
-      }
-      cout << res << endl;
+    if (t == 1) {
+      int a, b, u;
+      cin >> a >> b >> u;
+      add(FT, a, u);
+      add(FT, b + 1, -u);
     } else {
-      int k, u;
-      cin >> k >> u;
-      k--;
-      X[k] = u;
-      int blockmin = u;
-      for (int i = (k / BLOCK) * BLOCK; i < min((k / BLOCK + 1) * BLOCK, n);
-           i++) {
-        blockmin = min(blockmin, X[i]);
-      }
-      B[k / BLOCK] = blockmin;
+      int u;
+      cin >> u;
+      cout << sum(FT, u) << endl;
     }
   }
 }
