@@ -37,18 +37,22 @@ void add(vi& ft, int p, int dv) {
     ft[i] += dv;
 }
 
+struct query {
+  int k, x, a, b;
+};
+
 int main() {
   ios_base::sync_with_stdio(false);
   cin.tie(NULL);
-  int BLOCK = 5000;
   int n, q;
   cin >> n >> q;
   vi P(n);
-  vvi B(1E9 / BLOCK + 5);
+  vi compr;
+  vector<query> Q;
 
   FORI(n) {
     cin >> P[i];
-    B[P[i] / BLOCK].push_back(P[i]);
+    compr.push_back(P[i]);
   }
   FORI(q) {
     char c;
@@ -57,27 +61,33 @@ int main() {
       int k, x;
       cin >> k >> x;
       k--;
-      auto s1 = find(B[P[k] / BLOCK].begin(), B[P[k] / BLOCK].end(), P[k]);
-      iter_swap(s1, B[P[k] / BLOCK].rbegin());
-      B[P[k] / BLOCK].pop_back();
-      P[k] = x;
-      B[P[k] / BLOCK].push_back(P[k]);
+      Q.push_back({k, x, -1, -1});
+      compr.push_back(x);
     } else {
       int a, b;
       cin >> a >> b;
-      int res = 0;
-      int first_block = a / BLOCK;
-      int last_block = b / BLOCK;
-      for (int v : B[first_block])
-        if (v >= a && v <= b)
-          res++;
-      if (first_block != last_block)
-        for (int v : B[last_block])
-          if (v >= a && v <= b)
-            res++;
-      for (int i = first_block + 1; i <= last_block - 1; i++)
-        res += B[i].size();
-      cout << res << '\n';
+      compr.push_back(a - 1);
+      compr.push_back(b);
+      Q.push_back({-1, -1, a, b});
+    }
+  }
+  sort(compr.begin(), compr.end());
+  compr.erase(unique(compr.begin(), compr.end()), compr.end());
+
+  auto compf = [&compr](int i) -> int {
+    return lower_bound(compr.begin(), compr.end(), i) - compr.begin() + 1;
+  };
+
+  vi ft(compr.size() + 1);
+  FORI(n) add(ft, compf(P[i]), 1);
+
+  for (query q : Q) {
+    if (q.a == -1) {
+      add(ft, compf(P[q.k]), -1);
+      P[q.k] = q.x;
+      add(ft, compf(P[q.k]), 1);
+    } else {
+      cout << sum(ft, compf(q.b)) - sum(ft, compf(q.a - 1)) << '\n';
     }
   }
 }
